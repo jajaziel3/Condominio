@@ -1,0 +1,18 @@
+/* notifications-detail.css */
+.notif-detail-page{ padding:28px; }
+.detail-card{ max-width:720px; background:#fff; border-radius:8px; padding:20px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+.detail-card h2{ margin:0 0 6px; }
+.detail-card .meta{ color:#6b7280; margin-bottom:12px; }
+.detail-body{ color:#374151; line-height:1.5; }
+.actions{ display:flex; gap:8px; margin-top:16px; }
+.mark-read{ background:#111827; color:white; border:none; padding:8px 12px; border-radius:6px; }
+.delete{ background:transparent; color:#ef4444; border:1px solid #ef4444; padding:8px 12px; border-radius:6px; }
+.back{ background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; }
+
+/* Modal de confirmación (reutiliza clases similares) */
+.confirm-overlay{ position: fixed; inset: 0; background: rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:1200; }
+.confirm-card{ background: #fff; padding: 18px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); max-width:420px; width:90%; }
+.confirm-card h3{ margin:0 0 8px; }
+.confirm-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.cancel{ background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+.cancel:hover{ opacity:0.95; }

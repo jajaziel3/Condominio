@@ -4,6 +4,11 @@ import Chat from './componentes/chat'
 import Login from './componentes/login'
 import Register from './componentes/register'
 
+// Router
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import NotificationsPage from './pages/NotificationsPage'
+import NotificationDetail from './pages/NotificationDetail' 
+
 function App() {
   const [authState, setAuthState] = useState('checking') // checking, login, register, authenticated
   const [usuario, setUsuario] = useState(null)
@@ -112,13 +117,15 @@ function App() {
     )
   }
 
+  // Si está autenticado, renderizamos rutas (Chat + Notificaciones)
   return (
     <div className="App">
-      <Chat 
-        usuario={usuario}
-        token={token}
-        onLogout={handleLogout}
-      />
+      {/* Nota: instalar react-router-dom si aún no está: npm install react-router-dom */}
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Chat usuario={usuario} token={token} onLogout={handleLogout} />} />
+          <Route path="/notificaciones" element={<NotificationsPage />} />          <Route path="/notificaciones/:id" element={<NotificationDetail token={token} />} />        </Routes>
+      </BrowserRouter>
     </div>
   )
 }

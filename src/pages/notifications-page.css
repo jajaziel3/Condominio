@@ -1,0 +1,30 @@
+/* notifications-page.css - estilo inspirado en Figma */
+.notifications-page{ padding: 28px; }
+.page-header h1{ margin: 0; font-size: 28px; }
+.page-header .subtitle{ margin: 6px 0 18px; color: #6b7280; }
+
+.notifs-list{ display:flex; flex-direction:column; gap:12px; }
+.notif-card{ background: #f3f4f6; border-radius: 6px; padding: 14px; display:flex; justify-content:space-between; align-items:flex-start; border: 1px solid #e5e7eb; }
+.notif-card.unread{ background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.04); }
+.notif-main{ max-width: 72%; }
+.notif-title{ font-weight: 700; margin-bottom: 6px; }
+.notif-body{ color: #374151; font-size: 14px; }
+.notif-actions{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+.notif-meta{ color: #6b7280; font-size: 12px; }
+.buttons{ display:flex; gap:8px; }
+.mark-read{ background: #111827; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
+.delete{ background: transparent; color: #ef4444; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
+
+.empty{ padding:20px; color:#6b7280; }
+
+@media (max-width: 768px){
+  .notif-main{ max-width: 60%; }
+}
+
+/* Modal de confirmación */
+.confirm-overlay{ position: fixed; inset: 0; background: rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:1200; }
+.confirm-card{ background: #fff; padding: 18px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); max-width:420px; width:90%; }
+.confirm-card h3{ margin:0 0 8px; }
+.confirm-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.cancel{ background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+.cancel:hover{ opacity:0.95; }

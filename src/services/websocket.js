@@ -55,16 +55,75 @@ class WebSocketService {
                 type: 'message',
                 data: data
               });
+
+              // También publicar una notificación genérica para el UI
+              this.notifyCallbacks({
+                type: 'notification',
+                data: {
+                  id: data.id_mensaje || (data.data && data.data.id_mensaje) || Date.now(),
+                  category: 'mensaje',
+                  title: data.asunto || 'Nuevo mensaje',
+                  body: data.contenido || '',
+                  data: data
+                }
+              });
             });
             
             // Escuchar también con namespace completo
             channel.listen('.MensajeEnviado', (data) => {
-              console.log('🎉 ¡Evento .MensajeEnviado recibido!:', data);
+              console.log(' ¡Evento .MensajeEnviado recibido!:', data);
               this.notifyCallbacks({
                 type: 'message',
                 data: data
               });
+
+              this.notifyCallbacks({
+                type: 'notification',
+                data: {
+                  id: data.id_mensaje || (data.data && data.data.id_mensaje) || Date.now(),
+                  category: 'mensaje',
+                  title: data.asunto || 'Nuevo mensaje',
+                  body: data.contenido || '',
+                  data: data
+                }
+              });
             });
+
+            // Subscribirse al canal de notificaciones generales (multas, asambleas, pagos, etc.)
+            try {
+              console.log('📡 Suscribiendo al canal "notificaciones"...');
+              const notifChannel = this.echo.channel('notificaciones');
+
+              const mapNotifEvent = (eventName, category) => (payload) => {
+                console.log(`🔔 Evento ${eventName} recibido:`, payload);
+                this.notifyCallbacks({
+                  type: 'notification',
+                  data: {
+                    id: payload.id || payload.notificacion_id || Date.now(),
+                    category: category,
+                    title: payload.titulo || payload.asunto || (category === 'multa' ? 'Nueva multa' : 'Notificación'),
+                    body: payload.mensaje || payload.descripcion || '',
+                    data: payload
+                  }
+                });
+              };
+
+              notifChannel.listen('NotificacionCreada', mapNotifEvent('NotificacionCreada', 'general'));
+              notifChannel.listen('.NotificacionCreada', mapNotifEvent('.NotificacionCreada', 'general'));
+
+              notifChannel.listen('MultaCreada', mapNotifEvent('MultaCreada', 'multa'));
+              notifChannel.listen('.MultaCreada', mapNotifEvent('.MultaCreada', 'multa'));
+
+              notifChannel.listen('AsambleaConvocada', mapNotifEvent('AsambleaConvocada', 'asamblea'));
+              notifChannel.listen('.AsambleaConvocada', mapNotifEvent('.AsambleaConvocada', 'asamblea'));
+
+              notifChannel.listen('PagoAtrasado', mapNotifEvent('PagoAtrasado', 'pago'));
+              notifChannel.listen('.PagoAtrasado', mapNotifEvent('.PagoAtrasado', 'pago'));
+
+              console.log('✅ Suscripción a canal "notificaciones" establecida');
+            } catch (err) {
+              console.warn('⚠️ No se pudo suscribir a canal "notificaciones":', err);
+            }
 
             this.isConnected = true;
             console.log('✅ WebSocket conectado exitosamente al canal "mensajes"');
@@ -74,6 +133,21 @@ class WebSocketService {
               type: 'connection',
               status: 'connected'
             });
+
+            // Helper de desarrollo para simular notificaciones desde la consola del navegador
+            try {
+              window.__simulateNotification = (payload) => {
+                this.notifyCallbacks({ type: 'notification', data: payload });
+              };
+
+              // Helper para simular mensajes en desarrollo
+              window.__simulateMessage = (payload) => {
+                // payload should be the message object similar to server structure
+                this.notifyCallbacks({ type: 'message', data: payload });
+              };
+            } catch (e) {
+              // ignore
+            }
             
             resolve();
           } catch (error) {
