@@ -1,24 +1,240 @@
 /* notifications.css */
-.notifications-container{ position: relative; display: inline-block; margin-right: 10px; }
-.notifications-button{ position: relative; background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 6px; }
-.notifications-button svg{ color: #374151; }
-.notifications-button.has-unread{ background: rgba(239,68,68,0.08); }
-.notifications-button .badge{ position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 11px; padding: 2px 6px; border-radius: 12px; }
 
-.notifications-dropdown{ position: absolute; right: 0; top: 38px; width: 320px; max-height: 420px; overflow: auto; background: white; border: 1px solid #e5e7eb; box-shadow: 0 6px 18px rgba(0,0,0,0.08); border-radius: 8px; z-index: 1000; }
-.notifications-dropdown .dropdown-header{ padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #f3f4f6; }
-.dropdown-empty{ padding: 16px; color: #6b7280; }
-.notif-item{ display:flex; align-items:flex-start; gap:8px; padding: 10px 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
-.notif-item.unread{ background: #fef2f2; }
-.notif-item.read{ background: white; }
-.notif-title{ font-weight: 600; }
-.notif-body{ color: #6b7280; font-size: 13px; margin-top:4px; }
-.notif-category{ font-size: 12px; color: #9ca3af; text-transform: capitalize; }
+/* Keyframes para animaciones */
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-.notif-detail-overlay{ position: fixed; inset: 0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index: 1200; }
-.notif-detail{ background: white; padding: 20px; width: 420px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
-.notif-detail h3{ margin:0 0 8px; }
-.detail-meta{ color:#6b7280; margin-bottom:8px; }
-.detail-actions{ display:flex; gap:8px; margin-top:12px; }
-.detail-actions .close{ background: #ef4444; color: white; border:none; padding:6px 10px; border-radius:6px; }
-.detail-actions button{ background:#111827; color:white; border:none; padding:6px 10px; border-radius:6px; }
+@keyframes dropdownSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes badgePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.notifications-container{ 
+  position: relative; 
+  display: inline-block; 
+  margin-right: 10px; 
+}
+
+.notifications-button{ 
+  position: relative; 
+  background: transparent; 
+  border: none; 
+  cursor: pointer; 
+  padding: 6px; 
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.notifications-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.notifications-button svg{ 
+  color: #374151;
+  transition: color 0.2s ease;
+}
+
+.notifications-button:hover svg {
+  color: #111827;
+}
+
+.notifications-button.has-unread{ 
+  background: rgba(239,68,68,0.08); 
+}
+
+.notifications-button .badge{ 
+  position: absolute; 
+  top: -4px; 
+  right: -4px; 
+  background: #ef4444; 
+  color: white; 
+  font-size: 11px; 
+  padding: 2px 6px; 
+  border-radius: 12px;
+  animation: badgePulse 2s infinite;
+}
+
+.notifications-dropdown{ 
+  position: absolute; 
+  right: 0; 
+  top: 38px; 
+  width: 320px; 
+  max-height: 420px; 
+  overflow: auto; 
+  background: white; 
+  border: 1px solid #e5e7eb; 
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08); 
+  border-radius: 8px; 
+  z-index: 1000;
+  animation: dropdownSlideIn 0.2s ease-out;
+}
+
+.notifications-dropdown.closing {
+  animation: dropdownSlideOut 0.15s ease-in;
+}
+
+.notifications-dropdown .dropdown-header{ 
+  padding: 10px 12px; 
+  font-weight: 600; 
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-empty{ 
+  padding: 16px; 
+  color: #6b7280; 
+  text-align: center;
+}
+
+.notif-item{ 
+  display:flex; 
+  align-items:flex-start; 
+  gap:8px; 
+  padding: 10px 12px; 
+  border-bottom: 1px solid #f3f4f6; 
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notif-item:hover {
+  background: #f9fafb;
+  padding-left: 14px;
+}
+
+.notif-item.unread{ 
+  background: #fef2f2; 
+}
+
+.notif-item.read{ 
+  background: white; 
+}
+
+.notif-title{ 
+  font-weight: 600; 
+}
+
+.notif-body{ 
+  color: #6b7280; 
+  font-size: 13px; 
+  margin-top:4px; 
+}
+
+.notif-category{ 
+  font-size: 12px; 
+  color: #9ca3af; 
+  text-transform: capitalize; 
+}
+
+/* Modal overlay para detalles */
+.notif-detail-overlay{ 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,0.4); 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  z-index: 1200;
+  animation: fadeInOverlay 0.2s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.notif-detail{ 
+  background: white; 
+  padding: 20px; 
+  width: 420px; 
+  border-radius: 8px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  animation: detailSlideIn 0.3s ease-out;
+}
+
+@keyframes detailSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.notif-detail h3{ 
+  margin:0 0 8px; 
+}
+
+.detail-meta{ 
+  color:#6b7280; 
+  margin-bottom:8px; 
+}
+
+.detail-actions{ 
+  display:flex; 
+  gap:8px; 
+  margin-top:12px; 
+}
+
+.detail-actions .close{ 
+  background: #ef4444; 
+  color: white; 
+  border:none; 
+  padding:6px 10px; 
+  border-radius:6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detail-actions .close:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.detail-actions button{ 
+  background:#111827; 
+  color:white; 
+  border:none; 
+  padding:6px 10px; 
+  border-radius:6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detail-actions button:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+}

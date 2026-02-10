@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { CSSTransition } from 'react-transition-group';
 import websocketService from '../services/websocket';
 import './notifications.css';
 
@@ -17,7 +18,8 @@ const Notifications = ({ token, onOpenNotification, usuario }) => {
     const loadInitial = async () => {
       try {
         if (!token) return;
-        const res = await fetch('http://localhost:8000/api/notificaciones', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${apiUrl}/api/notificaciones`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -117,7 +119,8 @@ const Notifications = ({ token, onOpenNotification, usuario }) => {
     (async () => {
       if (!token) return;
       try {
-        await fetch(`http://localhost:8000/api/notificaciones/${notif.id}/marcar-leida`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        await fetch(`${apiUrl}/api/notificaciones/${notif.id}/marcar-leida`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -147,6 +150,9 @@ const Notifications = ({ token, onOpenNotification, usuario }) => {
 
   const closeDetail = () => setSelected(null);
 
+  const nodeRef = useRef(null);
+  const detailNodeRef = useRef(null);
+
   return (
     <div className="notifications-container" ref={containerRef}>
       <button className={`notifications-button ${unreadCount > 0 ? 'has-unread' : ''}`} onClick={toggleOpen} title="Notificaciones">
@@ -157,8 +163,8 @@ const Notifications = ({ token, onOpenNotification, usuario }) => {
         {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
       </button>
 
-      {open && (
-        <div className="notifications-dropdown">
+      <CSSTransition in={open} timeout={200} classNames="notifications-dropdown" unmountOnExit nodeRef={nodeRef}>
+        <div className="notifications-dropdown" ref={nodeRef}>
           <div className="dropdown-header">Notificaciones</div>
           {notifications.length === 0 ? (
             <div className="dropdown-empty">No hay notificaciones</div>
@@ -176,21 +182,21 @@ const Notifications = ({ token, onOpenNotification, usuario }) => {
             ))
           )}
         </div>
-      )}
+      </CSSTransition>
 
-      {selected && (
-        <div className="notif-detail-overlay">
+      <CSSTransition in={!!selected} timeout={300} classNames="notif-detail" unmountOnExit nodeRef={detailNodeRef}>
+        <div className="notif-detail-overlay" ref={detailNodeRef}>
           <div className="notif-detail">
-            <h3>{selected.title}</h3>
-            <p className="detail-meta">Tipo: <strong>{selected.category}</strong></p>
-            <div className="detail-body">{selected.body}</div>
+            <h3>{selected?.title}</h3>
+            <p className="detail-meta">Tipo: <strong>{selected?.category}</strong></p>
+            <div className="detail-body">{selected?.body}</div>
             <div className="detail-actions">
               <button onClick={() => { if (onOpenNotification) onOpenNotification(selected); closeDetail(); }}>Ir al detalle</button>
               <button className="close" onClick={closeDetail}>Cerrar</button>
             </div>
           </div>
         </div>
-      )}
+      </CSSTransition>
     </div>
   );
 };

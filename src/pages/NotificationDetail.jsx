@@ -28,7 +28,8 @@ const NotificationDetail = ({ token }) => {
       setLoading(true);
       try {
         if (token) {
-          const res = await fetch(`http://localhost:8000/api/notificaciones/${id}`, {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+          const res = await fetch(`${apiUrl}/api/notificaciones/${id}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
           });
           const data = await res.json();
@@ -55,7 +56,8 @@ const NotificationDetail = ({ token }) => {
   const markRead = async () => {
     try {
       if (token) {
-        await fetch(`http://localhost:8000/api/notificaciones/${id}/marcar-leida`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        await fetch(`${apiUrl}/api/notificaciones/${id}/marcar-leida`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
       }
     } catch (err) {
       console.warn('No se pudo marcar en servidor:', err.message);
@@ -71,7 +73,8 @@ const NotificationDetail = ({ token }) => {
   const doDelete = async () => {
     try {
       if (token) {
-        await fetch(`http://localhost:8000/api/notificaciones/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        await fetch(`${apiUrl}/api/notificaciones/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
       }
     } catch (err) {
       console.warn('No se pudo eliminar en servidor:', err.message);

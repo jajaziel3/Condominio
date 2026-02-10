@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { CSSTransition } from 'react-transition-group';
 import websocketService from '../services/websocket';
 import './notifications-page.css';
 
@@ -36,11 +37,12 @@ const writeStorage = (list) => {
   }
 };
 
-const NotificationsPage = ({ token }) => {
+const NotificationsPage = ({ token, usuario }) => {
   const [notifs, setNotifs] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState(null); // { id, title }
+  const [inProp, setInProp] = useState(true); // Para controlar la transición
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,7 +50,8 @@ const NotificationsPage = ({ token }) => {
     setLoading(true);
     try {
       if (token) {
-        const res = await fetch('http://localhost:8000/api/notificaciones', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${apiUrl}/api/notificaciones`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -89,7 +92,8 @@ const NotificationsPage = ({ token }) => {
     // Intentar marcar en servidor
     try {
       if (token) {
-        await fetch(`http://localhost:8000/api/notificaciones/${id}/marcar-leida`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        await fetch(`${apiUrl}/api/notificaciones/${id}/marcar-leida`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
@@ -110,7 +114,8 @@ const NotificationsPage = ({ token }) => {
     // Intentar eliminar en servidor
     try {
       if (token) {
-        await fetch(`http://localhost:8000/api/notificaciones/${id}`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        await fetch(`${apiUrl}/api/notificaciones/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
@@ -168,50 +173,53 @@ const NotificationsPage = ({ token }) => {
 
 
   return (
-    <div className="notifications-page">
-      <div className="page-header">
-        <h1>NOTIFICACIONES</h1>
-        <p className="subtitle">Tienes {unreadCount} notificación(es) sin leer</p>
-      </div>
+    <CSSTransition in={inProp} timeout={400} classNames="notifications-page" unmountOnExit={false}>
+      <div className="notifications-page-wrapper">
+        <div className="notifications-page">
+          <div className="page-header">
+            <h1>NOTIFICACIONES</h1>
+            <p className="subtitle">Tienes {unreadCount} notificación(es) sin leer</p>
+          </div>
 
-      <div className="notifs-list">
-        {loading ? (
-          <div className="empty">Cargando...</div>
-        ) : notifs.length === 0 ? (
-          <div className="empty">No hay notificaciones</div>
-        ) : (
-          notifs.map(n => (
-            <div key={n.id} className={`notif-card ${n.isRead ? 'read' : 'unread'}`}>
-              <div className="notif-main">
-                <div className="notif-title">{n.title}</div>
-                <div className="notif-body">{n.body}</div>
-              </div>
-              <div className="notif-actions">
-                <div className="notif-meta">{new Date(n.createdAt).toLocaleString()}</div>
-                <div className="buttons">
-                  {!n.isRead && <button className="mark-read" onClick={() => markAsRead(n.id)}>Marcar leído</button>}
-                  <button className="delete" onClick={() => setConfirm({ id: n.id, title: n.title })}>Eliminar</button>
+          <div className="notifs-list">
+            {loading ? (
+              <div className="empty">Cargando...</div>
+            ) : notifs.length === 0 ? (
+              <div className="empty">No hay notificaciones</div>
+            ) : (
+              notifs.map(n => (
+                <div key={n.id} className={`notif-card ${n.isRead ? 'read' : 'unread'}`} onClick={() => navigate(`/notificaciones/${n.id}`)}>
+                  <div className="notif-main">
+                    <div className="notif-title">{n.title}</div>
+                    <div className="notif-body">{n.body}</div>
+                  </div>
+                  <div className="notif-actions">
+                    <div className="notif-meta">{new Date(n.createdAt).toLocaleString()}</div>
+                    <div className="buttons">
+                      {!n.isRead && <button className="mark-read" onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}>Marcar leído</button>}
+                      <button className="delete" onClick={(e) => { e.stopPropagation(); setConfirm({ id: n.id, title: n.title }); }}>Eliminar</button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {confirm && (
+            <div className="confirm-overlay">
+              <div className="confirm-card">
+                <h3>Eliminar Notificación</h3>
+                <p>¿Estás seguro que deseas eliminar "<strong>{confirm.title}</strong>"?</p>
+                <div className="confirm-actions">
+                  <button className="delete" onClick={() => { removeNotif(confirm.id); setConfirm(null); }}>Eliminar</button>
+                  <button className="cancel" onClick={() => setConfirm(null)}>Cancelar</button>
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
-
-      {confirm && (
-        <div className="confirm-overlay">
-          <div className="confirm-card">
-            <h3>Eliminar Notificación</h3>
-            <p>¿Estás seguro que deseas eliminar "<strong>{confirm.title}</strong>"?</p>
-            <div className="confirm-actions">
-              <button className="delete" onClick={() => { removeNotif(confirm.id); setConfirm(null); }}>Eliminar</button>
-              <button className="cancel" onClick={() => setConfirm(null)}>Cancelar</button>
-            </div>
-          </div>
+          )}
         </div>
-      )}
-
-    </div>
+      </div>
+    </CSSTransition>
   );
 };
 

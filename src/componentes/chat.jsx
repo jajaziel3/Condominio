@@ -1,6 +1,5 @@
 // src/componentes/chat.jsx
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import websocketService from '../services/websocket';
 import Notifications from './Notifications';
 import './chat.css';
@@ -35,7 +34,8 @@ const Chat = ({ usuario, token, onLogout }) => {
   // Cargar historial de mensajes
   const loadMessageHistory = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/mensajes/listar', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/mensajes/listar`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
@@ -200,7 +200,8 @@ const Chat = ({ usuario, token, onLogout }) => {
         
         pollingInterval = setInterval(async () => {
           try {
-            const response = await fetch('http://localhost:8000/api/mensajes/listar', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const response = await fetch(`${apiUrl}/api/mensajes/listar`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json',
@@ -300,7 +301,8 @@ const Chat = ({ usuario, token, onLogout }) => {
     // Enviar al servidor (si falla, ya se añadió localmente para UX)
     try {
       console.log('📤 Enviando mensaje al servidor...');
-      const response = await fetch('http://localhost:8000/api/mensajes/enviar', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/mensajes/enviar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -387,7 +389,8 @@ const Chat = ({ usuario, token, onLogout }) => {
 
     // Intentar notificar al servidor para marcar como leídos (endpoint opcional en backend)
     try {
-      await fetch('http://localhost:8000/api/mensajes/marcar-leidos', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      await fetch(`${apiUrl}/api/mensajes/marcar-leidos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -541,18 +544,6 @@ const Chat = ({ usuario, token, onLogout }) => {
 
   return (
     <div className="chat-container three-column-layout">
-      <aside className="sidebar">
-        <div className="sidebar-inner">
-          <ul className="side-menu">
-            <li>INICIO</li>
-            <li>RESIDENTES</li>
-            <li>VISITANTES</li>
-            <li className="active">CHAT</li>
-            <li onClick={() => navigate('/notificaciones')} style={{ cursor: 'pointer' }}>NOTIFICACIONES</li>
-          </ul>
-        </div>
-      </aside>
-
       <section className="conversations-panel">
         <div className="conversations-card">
           <div className="conversations-header">

@@ -3,6 +3,8 @@ import './App.css'
 import Chat from './componentes/chat' 
 import Login from './componentes/login'
 import Register from './componentes/register'
+import Sidebar from './componentes/Sidebar'
+import Home from './pages/Home'
 
 // Router
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -50,7 +52,8 @@ function App() {
   const handleLogout = async () => {
     try {
       // Llamar al endpoint de logout si es necesario
-      await fetch('http://localhost:8000/api/auth/logout', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      await fetch(`${apiUrl}/api/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -117,14 +120,19 @@ function App() {
     )
   }
 
-  // Si está autenticado, renderizamos rutas (Chat + Notificaciones)
+  // Si está autenticado, renderizamos rutas (Home + Chat + Notificaciones) con layout compartido
   return (
     <div className="App">
-      {/* Nota: instalar react-router-dom si aún no está: npm install react-router-dom */}
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Chat usuario={usuario} token={token} onLogout={handleLogout} />} />
-          <Route path="/notificaciones" element={<NotificationsPage />} />          <Route path="/notificaciones/:id" element={<NotificationDetail token={token} />} />        </Routes>
+        <div className="app-layout">
+          <Sidebar />
+          <Routes>
+            <Route path="/" element={<Home usuario={usuario} onLogout={handleLogout} />} />
+            <Route path="/chat" element={<Chat usuario={usuario} token={token} onLogout={handleLogout} />} />
+            <Route path="/notificaciones" element={<NotificationsPage token={token} usuario={usuario} />} />
+            <Route path="/notificaciones/:id" element={<NotificationDetail token={token} />} />
+          </Routes>
+        </div>
       </BrowserRouter>
     </div>
   )
