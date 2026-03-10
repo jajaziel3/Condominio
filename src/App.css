@@ -1,74 +1,74 @@
-#root {
-  width: 100%;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
   padding: 0;
+  text-align: center;
 }
 
-.App {
-  width: 100%;
-  height: 100vh;
+/* Dashboard Styles */
+.dashboard {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #f5f5f5;
 }
 
-.app-layout {
-  display: flex;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.app-layout > :last-child {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.App.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #2d2d2d 0%, #505050 100%);
+.dashboard-header {
+  background: linear-gradient(135deg, #3a3a3a 0%, #505050 100%);
   color: white;
-  font-size: 18px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.switch-text {
-  position: absolute;
-  bottom: 20px;
-  text-align: center;
-  color: #888888;
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-info span {
   font-size: 14px;
-  width: 100%;
+  color: #e0e0e0;
 }
 
-.switch-button {
-  background: none;
+.btn-logout {
+  background-color: #ef5350;
+  color: white;
   border: none;
-  color: #333333;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: 600;
-  text-decoration: underline;
-  margin-left: 5px;
-  padding: 0;
   font-size: 14px;
-  transition: color 0.3s;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
 }
 
-.switch-button:hover {
-  color: #555555;
+.btn-logout:hover {
+  background-color: #e53935;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* App Styles */
+.App {
+  min-height: 100vh;
 }
 
 .logo {
@@ -77,9 +77,11 @@ body {
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #4f4f4faa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #0f0f0faa);
 }
@@ -104,6 +106,5 @@ body {
 }
 
 .read-the-docs {
-  color: #777777;
+  color: #363636;
 }
-

@@ -1,140 +1,95 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
-import Chat from './componentes/chat' 
-import Login from './componentes/login'
+import authService from './services/authService'
+
+// Componentes
 import Register from './componentes/register'
-import Sidebar from './componentes/Sidebar'
-import Home from './pages/Home'
+import Login from './componentes/login'
+import VerifyEmail from './componentes/verify-email'
+import Chat from './componentes/chat'
 
-// Router
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import NotificationsPage from './pages/NotificationsPage'
-import NotificationDetail from './pages/NotificationDetail' 
+// Componente de ruta protegida
+function ProtectedRoute({ element, isAuthenticated, isLoading }) {
+  if (isLoading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Cargando...</div>
+  }
+  
+  return isAuthenticated ? element : <Navigate to="/login" replace />
+}
 
-function App() {
-  const [authState, setAuthState] = useState('checking') // checking, login, register, authenticated
-  const [usuario, setUsuario] = useState(null)
-  const [token, setToken] = useState(null)
+// Componente de Dashboard
+function Dashboard() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Verificar si hay una sesión activa
   useEffect(() => {
-    const savedToken = localStorage.getItem('auth_token')
-    const savedUser = sessionStorage.getItem('usuario')
-
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken)
-        setUsuario(JSON.parse(savedUser))
-        setAuthState('authenticated')
-      } catch (error) {
-        console.error('Error al restaurar sesión:', error)
-        localStorage.removeItem('auth_token')
-        sessionStorage.removeItem('usuario')
-        setAuthState('login')
-      }
-    } else {
-      setAuthState('login')
-    }
+    const currentUser = authService.getUser()
+    setUser(currentUser)
+    setLoading(false)
   }, [])
-
-  const handleLoginSuccess = (userData, authToken) => {
-    setUsuario(userData)
-    setToken(authToken)
-    setAuthState('authenticated')
-  }
-
-  const handleRegistrationSuccess = (userData, authToken) => {
-    setUsuario(userData)
-    setToken(authToken)
-    setAuthState('authenticated')
-  }
 
   const handleLogout = async () => {
     try {
-      // Llamar al endpoint de logout si es necesario
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      await fetch(`${apiUrl}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      })
+      await authService.logout()
+      window.location.href = '/login'
     } catch (error) {
       console.error('Error al cerrar sesión:', error)
-    } finally {
-      // Limpiar localStorage y sessionStorage
-      localStorage.removeItem('auth_token')
-      sessionStorage.removeItem('usuario')
-      
-      // Cambiar estado
-      setUsuario(null)
-      setToken(null)
-      setAuthState('login')
     }
   }
 
-  const handleSwitchToRegister = () => {
-    setAuthState('register')
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Cargando...</div>
   }
 
-  const handleSwitchToLogin = () => {
-    setAuthState('login')
-  }
-
-  if (authState === 'checking') {
-    return (
-      <div className="App loading">
-        <p>Verificando sesión...</p>
-      </div>
-    )
-  }
-
-  if (authState === 'login') {
-    return (
-      <div className="App">
-        <Login 
-          onLoginSuccess={handleLoginSuccess}
-          onSwitchToRegister={handleSwitchToRegister}
-        />
-      </div>
-    )
-  }
-
-  if (authState === 'register') {
-    return (
-      <div className="App">
-        <Register 
-          onRegistrationSuccess={handleRegistrationSuccess}
-        />
-        <p className="switch-text">
-          ¿Ya tienes cuenta? 
-          <button 
-            className="switch-button"
-            onClick={handleSwitchToLogin}
-          >
-            Inicia sesión
-          </button>
-        </p>
-      </div>
-    )
-  }
-
-  // Si está autenticado, renderizamos rutas (Home + Chat + Notificaciones) con layout compartido
   return (
-    <div className="App">
-      <BrowserRouter>
-        <div className="app-layout">
-          <Sidebar />
-          <Routes>
-            <Route path="/" element={<Home usuario={usuario} onLogout={handleLogout} />} />
-            <Route path="/chat" element={<Chat usuario={usuario} token={token} onLogout={handleLogout} />} />
-            <Route path="/notificaciones" element={<NotificationsPage token={token} usuario={usuario} />} />
-            <Route path="/notificaciones/:id" element={<NotificationDetail token={token} />} />
-          </Routes>
+    <div className="dashboard">
+      <header className="dashboard-header">
+        <h1>Condominio</h1>
+        <div className="user-info">
+          <span>Bienvenido, {user?.nombre || 'Usuario'}</span>
+          <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
         </div>
-      </BrowserRouter>
+      </header>
+      <main className="dashboard-content">
+        <Chat />
+      </main>
     </div>
+  )
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Verificar si hay sesión activa
+    const token = authService.getToken()
+    const user = authService.getUser()
+    setIsAuthenticated(!!(token && user))
+    setIsLoading(false)
+  }, [])
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute 
+              element={<Dashboard />} 
+              isAuthenticated={isAuthenticated}
+              isLoading={isLoading}
+            />
+          } 
+        />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

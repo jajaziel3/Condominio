@@ -1,19 +1,21 @@
-// src/componentes/register.jsx
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import authService from '../services/authService';
 import './auth.css';
 
-const Register = ({ onRegistrationSuccess, onSwitchToLogin }) => {
+export default function Register() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
     email: '',
     password: '',
     password_confirmation: '',
+    telefono: '',
   });
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,86 +23,78 @@ const Register = ({ onRegistrationSuccess, onSwitchToLogin }) => {
       ...prev,
       [name]: value
     }));
+    setError('');
+  };
+
+  const validateForm = () => {
+    if (!formData.nombre.trim()) {
+      setError('El nombre es requerido');
+      return false;
+    }
+    if (!formData.apellido.trim()) {
+      setError('El apellido es requerido');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError('El email es requerido');
+      return false;
+    }
+    if (!formData.email.includes('@')) {
+      setError('El email no es válido');
+      return false;
+    }
+    if (formData.password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
+      return false;
+    }
+    if (formData.password !== formData.password_confirmation) {
+      setError('Las contraseñas no coinciden');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    // Validaciones básicas
-    if (!formData.nombre.trim()) {
-      setError('El nombre es requerido')
-      return
-    }
-
-    if (!formData.apellido.trim()) {
-      setError('El apellido es requerido')
-      return;
-    }
-
-    if (!formData.email.includes('@')) {
-      setError('Email inválido');
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
-      return;
-    }
-
-    if (formData.password !== formData.password_confirmation) {
-      setError('Las contraseñas no coinciden');
+    
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: formData.nombre,
-          apellido: formData.apellido,
-          email: formData.email,
-          password: formData.password,
-          password_confirmation: formData.password_confirmation,
-        }),
+      const response = await authService.register({
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.password_confirmation,
+        telefono: formData.telefono || null,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess('¡Registro exitoso! Bienvenido ' + formData.nombre);
-        
-        // Guardar token en localStorage (compartido entre pestañas)
-        localStorage.setItem('auth_token', data.data.token);
-        // Guardar usuario en sessionStorage (específico de esta pestaña)
-        sessionStorage.setItem('usuario', JSON.stringify(data.data.usuario));
-
-        // Limpiar formulario
-        setFormData({
-          nombre: '',
-          apellido: '',
-          email: '',
-          password: '',
-          password_confirmation: '',
-        });
-
-        // Llamar callback después de 1.5 segundos
-        setTimeout(() => {
-          onRegistrationSuccess(data.data.usuario, data.data.token);
-        }, 1500);
-      } else {
-        setError(data.message || 'Error en el registro');
-      }
+      setSuccess(response.message || 'Registro exitoso. Por favor, verifica tu correo electrónico.');
+      
+      // Guardar email para la pantalla de verificación
+      sessionStorage.setItem('pending_email', formData.email);
+      
+      // Redirigir a verificación después de 2 segundos
+      setTimeout(() => {
+        navigate('/verify-email');
+      }, 2000);
     } catch (err) {
-      setError('Error al conectar con el servidor: ' + err.message);
+      if (err.message) {
+        setError(err.message);
+      } else if (err.data?.message) {
+        setError(err.data.message);
+      } else if (err.data?.errors) {
+        const firstError = Object.values(err.data.errors)[0];
+        setError(Array.isArray(firstError) ? firstError[0] : firstError);
+      } else {
+        setError('Error al registrar. Por favor, intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -108,85 +102,109 @@ const Register = ({ onRegistrationSuccess, onSwitchToLogin }) => {
 
   return (
     <div className="auth-container">
-      <div className="auth-form">
-        <h2>Crear Cuenta</h2>
+      <div className="auth-card">
+        <h1>Crear Cuenta</h1>
         
         {error && <div className="alert alert-error">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="nombre">Nombre:</label>
+            <label htmlFor="nombre">Nombre *</label>
             <input
-              type="text"
               id="nombre"
+              type="text"
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
               placeholder="Tu nombre"
               disabled={loading}
+              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="apellido">Apellido:</label>
+            <label htmlFor="apellido">Apellido *</label>
             <input
-              type="text"
               id="apellido"
+              type="text"
               name="apellido"
               value={formData.apellido}
               onChange={handleChange}
               placeholder="Tu apellido"
               disabled={loading}
+              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email:</label>
+            <label htmlFor="email">Email *</label>
             <input
-              type="email"
               id="email"
+              type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               placeholder="tu@email.com"
               disabled={loading}
+              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contraseña:</label>
+            <label htmlFor="telefono">Teléfono (Opcional)</label>
             <input
-              type="password"
+              id="telefono"
+              type="tel"
+              name="telefono"
+              value={formData.telefono}
+              onChange={handleChange}
+              placeholder="Tu número de teléfono"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Contraseña *</label>
+            <input
               id="password"
+              type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Mínimo 8 caracteres"
               disabled={loading}
+              required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password_confirmation">Confirmar Contraseña:</label>
+            <label htmlFor="password_confirmation">Confirmar Contraseña *</label>
             <input
-              type="password"
               id="password_confirmation"
+              type="password"
               name="password_confirmation"
               value={formData.password_confirmation}
               onChange={handleChange}
               placeholder="Repite tu contraseña"
               disabled={loading}
+              required
             />
           </div>
 
-          <button type="submit" disabled={loading} className="btn-submit">
+          <button 
+            type="submit" 
+            className="btn btn-primary"
+            disabled={loading}
+          >
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
         </form>
+
+        <p className="auth-link">
+          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión aquí</Link>
+        </p>
       </div>
     </div>
   );
-};
-
-export default Register;
+}
