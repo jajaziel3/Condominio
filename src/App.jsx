@@ -10,12 +10,24 @@ import VerifyEmail from './componentes/verify-email'
 import Chat from './componentes/chat'
 
 // Componente de ruta protegida
-function ProtectedRoute({ element, isAuthenticated, isLoading }) {
+function ProtectedRoute({ element, isAuthenticated, isLoading, allowedRoles = [] }) {
   if (isLoading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Cargando...</div>
   }
   
-  return isAuthenticated ? element : <Navigate to="/login" replace />
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  // Verificar roles si se especifican
+  if (allowedRoles.length > 0) {
+    const user = authService.getUser()
+    if (!user || !allowedRoles.includes(user.rol)) {
+      return <Navigate to="/dashboard" replace /> // O página de acceso denegado
+    }
+  }
+  
+  return element
 }
 
 // Componente de Dashboard
@@ -64,10 +76,24 @@ function App() {
 
   useEffect(() => {
     // Verificar si hay sesión activa
-    const token = authService.getToken()
-    const user = authService.getUser()
-    setIsAuthenticated(!!(token && user))
-    setIsLoading(false)
+    const checkAuth = async () => {
+      const token = authService.getToken()
+      if (token) {
+        try {
+          await authService.getUser() // Esto valida el token con el servidor
+          const user = authService.getUser()
+          setIsAuthenticated(!!user)
+        } catch (error) {
+          // Token inválido, limpiar
+          setIsAuthenticated(false)
+        }
+      } else {
+        setIsAuthenticated(false)
+      }
+      setIsLoading(false)
+    }
+    
+    checkAuth()
   }, [])
 
   return (
